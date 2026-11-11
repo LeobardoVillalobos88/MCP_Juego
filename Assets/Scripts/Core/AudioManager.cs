@@ -11,7 +11,6 @@ public class AudioManager : MonoBehaviour
     public AudioClip nivelCompleto;
     public AudioClip vidaExtra;
     public AudioClip bonus;
-    public AudioClip clic;
     public AudioClip sirena;
     public AudioClip alarma;
 

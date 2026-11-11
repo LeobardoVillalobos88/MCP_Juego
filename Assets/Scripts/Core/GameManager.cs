@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -35,6 +36,13 @@ public class GameManager : MonoBehaviour
     private int puntosComidos = 0;
     private GameObject bonus;
 
+    void Awake()
+    {
+        // Partida nueva
+        Time.timeScale = 1f;
+        AudioListener.pause = false;
+    }
+
     void Start()
     {
         laberinto = FindAnyObjectByType<Laberinto>();
@@ -45,6 +53,7 @@ public class GameManager : MonoBehaviour
         record = PlayerPrefs.GetInt("Record", 0);
         vidas = vidasIniciales;
         laberinto.ColocarPuntos();
+        audioManager.Reproducir(audioManager.inicio);
         StartCoroutine(EmpezarVida(audioManager.inicio.length));
     }
 
@@ -180,9 +189,11 @@ public class GameManager : MonoBehaviour
         enJuego = true;
     }
 
+    // El susto no corre durante la pausa
     IEnumerator PausaBreve(float segundos)
     {
         enJuego = false;
+        finSusto += segundos;
         yield return new WaitForSeconds(segundos);
         if (!juegoTerminado) enJuego = true;
     }
@@ -228,8 +239,17 @@ public class GameManager : MonoBehaviour
     void TerminarPartida()
     {
         juegoTerminado = true;
-        mensaje = "FIN DEL JUEGO";
         PlayerPrefs.SetInt("Record", record);
         PlayerPrefs.Save();
+    }
+
+    public void Reiniciar()
+    {
+        SceneManager.LoadScene("Game");
+    }
+
+    public void IrAlMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }
