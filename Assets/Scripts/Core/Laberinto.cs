@@ -42,7 +42,7 @@ public class Laberinto : MonoBehaviour
 
     public void ColocarPuntos()
     {
-        // Los que quedaron del nivel anterior
+        // Quita los puntos que haya antes de colocarlos
         if (puntos != null)
         {
             foreach (GameObject punto in puntos) if (punto != null) Destroy(punto);
