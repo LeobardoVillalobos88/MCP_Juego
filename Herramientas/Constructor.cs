@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.TextCore.LowLevel;
 using UnityEngine.UI;
 
@@ -46,10 +48,13 @@ public static class Constructor
         }
     }
 
+    // Borra los objetos raíz con ese nombre, aunque estén desactivados
     static void Borrar(string nombre)
     {
-        GameObject go = GameObject.Find(nombre);
-        if (go != null) Object.DestroyImmediate(go);
+        foreach (GameObject go in EditorSceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            if (go.name == nombre) Object.DestroyImmediate(go);
+        }
     }
 
     // Abre la escena; si no existe la crea a partir de la plantilla de URP 2D
@@ -280,6 +285,7 @@ public static class Constructor
         audio.alarma = Sonido("Alarma");
 
         CrearHUD(gameManager);
+        AgregarBrillo();
 
         GuardarEscena();
         return "Escena de juego creada";
@@ -313,7 +319,10 @@ public static class Constructor
 
         asset.atlasPopulationMode = AtlasPopulationMode.Dynamic;
         asset.ClearFontAssetData();
-        asset.TryAddCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚÑabcdefghijklmnopqrstuvwxyzáéíóúñ0123456789!¡?.,:-/+ ");
+        if (!asset.TryAddCharacters("ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚÑabcdefghijklmnopqrstuvwxyzáéíóúñ0123456789!¡?.,:-/+ ", out string faltantes))
+        {
+            throw new System.Exception("La fuente no tiene los caracteres: " + faltantes);
+        }
         asset.atlasPopulationMode = AtlasPopulationMode.Static;
         EditorUtility.SetDirty(asset);
         AssetDatabase.SaveAssets();
@@ -359,7 +368,7 @@ public static class Constructor
         return imagen;
     }
 
-    static void Boton(string nombre, Transform padre, string contenido, Vector2 posicion, UnityAction accion)
+    static GameObject Boton(string nombre, Transform padre, string contenido, Vector2 posicion, UnityAction accion)
     {
         // Marco cian con el fondo encima, 4 px más chico por lado
         RectTransform rect = CrearRect(nombre, padre, new Vector2(0.5f, 0.5f), posicion, new Vector2(420f, 80f));
@@ -380,6 +389,7 @@ public static class Constructor
         TMP_Text texto = Texto("Texto", rect, contenido, 40f, Cian, new Vector2(0.5f, 0.5f), Vector2.zero);
         texto.rectTransform.sizeDelta = new Vector2(420f, 80f);
         texto.alignment = TextAlignmentOptions.Center;
+        return rect.gameObject;
     }
 
     static GameObject PanelCompleto(string nombre, Transform padre)
@@ -436,7 +446,7 @@ public static class Constructor
         MenuPausa menuPausa = canvas.gameObject.AddComponent<MenuPausa>();
         menuPausa.panel = pausa;
         Texto("Titulo", pausa.transform, "PAUSA", 90f, Cian, new Vector2(0.5f, 0.5f), new Vector2(0f, 180f));
-        Boton("Continuar", pausa.transform, "CONTINUAR", new Vector2(0f, 0f), menuPausa.Continuar);
+        menuPausa.botonContinuar = Boton("Continuar", pausa.transform, "CONTINUAR", new Vector2(0f, 0f), menuPausa.Continuar);
         Boton("Menu", pausa.transform, "MENÚ", new Vector2(0f, -120f), gameManager.IrAlMenu);
 
         GameObject fin = PanelCompleto("PanelFinPartida", canvas);
@@ -444,7 +454,7 @@ public static class Constructor
         Texto("Titulo", fin.transform, "FIN DEL JUEGO", 90f, Rosa, new Vector2(0.5f, 0.5f), new Vector2(0f, 250f));
         hud.textoFinal = Texto("Resultado", fin.transform, "", 50f, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0f, 90f));
         hud.textoFinal.rectTransform.sizeDelta = new Vector2(900f, 160f);
-        Boton("Reintentar", fin.transform, "REINTENTAR", new Vector2(0f, -80f), gameManager.Reiniciar);
+        hud.botonReintentar = Boton("Reintentar", fin.transform, "REINTENTAR", new Vector2(0f, -80f), gameManager.Reiniciar);
         Boton("Menu", fin.transform, "MENÚ", new Vector2(0f, -200f), gameManager.IrAlMenu);
     }
 
@@ -482,15 +492,54 @@ public static class Constructor
             Texto("Nombre" + i, canvas, nombres[i], 24f, colores[i], centro, posicion + new Vector2(0f, -75f));
         }
 
-        Boton("Jugar", canvas, "JUGAR", new Vector2(0f, -200f), menu.Jugar);
+        // Jugar queda seleccionado para empezar con Enter
+        GameObject jugar = Boton("Jugar", canvas, "JUGAR", new Vector2(0f, -200f), menu.Jugar);
         Boton("Salir", canvas, "SALIR", new Vector2(0f, -320f), menu.Salir);
-        Texto("Controles", canvas, "WASD / FLECHAS: MOVERSE     ESC: PAUSA     ENTER: JUGAR", 26f, new Color(0.6f, 0.7f, 1f), centro, new Vector2(0f, -460f));
+        Object.FindAnyObjectByType<EventSystem>().firstSelectedGameObject = jugar;
+        Texto("Controles", canvas, "WASD / FLECHAS: MOVERSE     ESC: PAUSA     ENTER: ELEGIR", 26f, new Color(0.6f, 0.7f, 1f), centro, new Vector2(0f, -460f));
+
+        AgregarBrillo();
 
         GuardarEscena();
         return "Menú creado";
     }
 
-    // El menú abre el juego; la escena de ejemplo de la plantilla ya no se usa
+    // ---------- Brillo de neón ----------
+
+    static VolumeProfile PerfilNeon()
+    {
+        string ruta = "Assets/Settings/Neon.asset";
+        VolumeProfile perfil = AssetDatabase.LoadAssetAtPath<VolumeProfile>(ruta);
+        if (perfil == null)
+        {
+            perfil = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(perfil, ruta);
+        }
+
+        if (!perfil.TryGet(out Bloom bloom))
+        {
+            bloom = perfil.Add<Bloom>(true);
+            AssetDatabase.AddObjectToAsset(bloom, perfil);
+        }
+        bloom.threshold.Override(0.55f);
+        bloom.intensity.Override(1.6f);
+        bloom.scatter.Override(0.65f);
+        EditorUtility.SetDirty(perfil);
+        AssetDatabase.SaveAssets();
+        return perfil;
+    }
+
+    // Activa el posprocesado en la cámara y agrega el volumen con el Bloom
+    static void AgregarBrillo()
+    {
+        Borrar("Brillo");
+        Camera.main.GetUniversalAdditionalCameraData().renderPostProcessing = true;
+        Volume volumen = new GameObject("Brillo").AddComponent<Volume>();
+        volumen.isGlobal = true;
+        volumen.sharedProfile = PerfilNeon();
+    }
+
+    // Escenas del build: primero el menú y luego el juego
     public static string ConfigurarBuild()
     {
         if (File.Exists("Assets/Scenes/SampleScene.unity")) AssetDatabase.DeleteAsset("Assets/Scenes/SampleScene.unity");

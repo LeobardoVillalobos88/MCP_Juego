@@ -1,6 +1,6 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class HUD : MonoBehaviour
@@ -14,6 +14,7 @@ public class HUD : MonoBehaviour
     [Header("Fin de partida")]
     public GameObject panelFinPartida;
     public TMP_Text textoFinal;
+    public GameObject botonReintentar;
 
     private GameManager gameManager;
 
@@ -39,12 +40,9 @@ public class HUD : MonoBehaviour
         {
             panelFinPartida.SetActive(true);
             textoFinal.text = "PUNTAJE  " + gameManager.puntaje + "\nRÉCORD  " + gameManager.record;
-        }
 
-        // Enter para jugar otra vez
-        if (panelFinPartida.activeSelf && Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame)
-        {
-            gameManager.Reiniciar();
+            // Seleccionado para poder usar el teclado (Enter)
+            EventSystem.current.SetSelectedGameObject(botonReintentar);
         }
     }
 }

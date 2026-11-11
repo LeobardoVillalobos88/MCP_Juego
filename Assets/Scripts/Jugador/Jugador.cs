@@ -33,7 +33,8 @@ public class Jugador : MonoBehaviour
     {
         movimiento.Colocar(celdaInicio);
         movimiento.velocidad = gameManager.velocidadJugador * gameManager.MultiplicadorVelocidad();
-        direccionDeseada = Vector2Int.left;
+        // Espera quieto hasta que se presione una dirección
+        direccionDeseada = Vector2Int.zero;
         mirando = Vector2Int.left;
         sr.enabled = true;
         sr.sprite = spritesIzquierda[0];

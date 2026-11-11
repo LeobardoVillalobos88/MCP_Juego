@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 public class MenuPausa : MonoBehaviour
 {
     public GameObject panel;
+    public GameObject botonContinuar;
 
     private GameManager gameManager;
 
@@ -15,13 +17,11 @@ public class MenuPausa : MonoBehaviour
 
     void Update()
     {
-        if (gameManager.juegoTerminado || Keyboard.current == null) return;
+        if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
 
-        if (Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            if (panel.activeSelf) Continuar();
-            else Pausar();
-        }
+        // Solo se pausa con el juego en marcha (no durante una muerte ni al final)
+        if (panel.activeSelf) Continuar();
+        else if (gameManager.enJuego) Pausar();
     }
 
     public void Pausar()
@@ -29,6 +29,7 @@ public class MenuPausa : MonoBehaviour
         panel.SetActive(true);
         Time.timeScale = 0f;
         AudioListener.pause = true;
+        EventSystem.current.SetSelectedGameObject(botonContinuar);
     }
 
     public void Continuar()
