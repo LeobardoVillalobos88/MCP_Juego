@@ -113,7 +113,7 @@ que los deja más cerca de su **objetivo**. Lo que cambia es el objetivo:
 ######.# ######### #.######
 #............#............#
 #.####.#####.#.#####.####.#
-#o...........J...........o#
+#o........... ...........o#
 ###.##.#.#########.#.##.###
 #......#.....#.....#......#
 #.##########.#.##########.#
@@ -121,7 +121,7 @@ que los deja más cerca de su **objetivo**. Lo que cambia es el objetivo:
 ###########################
 ```
 
-`#` pared · `.` punto · `o` núcleo · `-` puerta de la casa · `C` casa · `J` inicio de Bit ·
+`#` pared · `.` punto · `o` núcleo · `-` puerta de la casa · `C` casa ·
 espacio: pasillo sin punto.
 
 ## 8. Pantallas
