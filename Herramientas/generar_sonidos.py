@@ -1,4 +1,4 @@
-# Genera los efectos de sonido de 8 bits en Assets/Audio/SFX
+# Genera los efectos de sonido estilo 8 bits (WAV de 16 bits) en Assets/Audio/SFX
 import math, os, random, struct, wave
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -53,6 +53,13 @@ def mezclar(a, b):
     a, b = a + [0] * (largo - len(a)), b + [0] * (largo - len(b))
     return [x + y for x, y in zip(a, b)]
 
+# Fundido corto en los extremos para que el bucle no haga clic al repetirse
+def bucle(muestras, fundido=300):
+    for i in range(fundido):
+        muestras[i] *= i / fundido
+        muestras[-1 - i] *= i / fundido
+    return muestras
+
 def ruido(duracion, volumen=0.3):
     azar = random.Random(3)
     total = int(duracion * MUESTREO)
@@ -86,7 +93,7 @@ def main():
         frecuencia = 420 + 120 * math.sin(t / 0.8 * 2 * math.pi)
         fase += frecuencia / MUESTREO
         muestras.append(onda("triangulo", fase) * 0.18)
-    guardar_wav("Sirena", muestras)
+    guardar_wav("Sirena", bucle(muestras))
 
     fase, muestras = 0, []
     for i in range(int(0.4 * MUESTREO)):
@@ -94,7 +101,7 @@ def main():
         frecuencia = 250 + 900 * ((t * 5) % 1)
         fase += frecuencia / MUESTREO
         muestras.append(onda("cuadrada", fase) * 0.1)
-    guardar_wav("Alarma", muestras)
+    guardar_wav("Alarma", bucle(muestras))
 
     print("Sonidos generados en", SALIDA)
 
