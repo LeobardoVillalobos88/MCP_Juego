@@ -239,17 +239,25 @@ public class GameManager : MonoBehaviour
     void TerminarPartida()
     {
         juegoTerminado = true;
+        GuardarRecord();
+    }
+
+    // También al salir a media partida, para no perder un récord nuevo
+    void GuardarRecord()
+    {
         PlayerPrefs.SetInt("Record", record);
         PlayerPrefs.Save();
     }
 
     public void Reiniciar()
     {
+        GuardarRecord();
         SceneManager.LoadScene("Game");
     }
 
     public void IrAlMenu()
     {
+        GuardarRecord();
         SceneManager.LoadScene("MainMenu");
     }
 }

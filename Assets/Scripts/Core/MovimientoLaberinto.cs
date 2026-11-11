@@ -10,6 +10,7 @@ public class MovimientoLaberinto : MonoBehaviour
     [HideInInspector] public Vector2Int direccion;
 
     private Laberinto laberinto;
+    private float sobrante = 0f;
 
     void Awake()
     {
@@ -20,6 +21,7 @@ public class MovimientoLaberinto : MonoBehaviour
     {
         celda = nuevaCelda;
         direccion = Vector2Int.zero;
+        sobrante = 0f;
         transform.position = laberinto.CeldaAMundo(celda);
     }
 
@@ -38,12 +40,26 @@ public class MovimientoLaberinto : MonoBehaviour
     // Devuelve true cuando está en el centro de una celda
     public bool Avanzar()
     {
-        if (direccion == Vector2Int.zero) return true;
+        if (direccion == Vector2Int.zero)
+        {
+            sobrante = 0f;
+            return true;
+        }
 
+        // Lo que sobró al llegar al centro en el cuadro anterior se recorre ahora,
+        // así la velocidad real no depende de los FPS
+        float paso = velocidad * Time.deltaTime + sobrante;
+        sobrante = 0f;
         Vector3 destino = laberinto.CeldaAMundo(celda + direccion);
-        transform.position = Vector3.MoveTowards(transform.position, destino, velocidad * Time.deltaTime);
-        if (transform.position != destino) return false;
+        float distancia = Vector3.Distance(transform.position, destino);
+        if (paso < distancia)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, destino, paso);
+            return false;
+        }
 
+        transform.position = destino;
+        sobrante = paso - distancia;
         celda += direccion;
 
         // Túnel: sale por un lado y aparece por el otro

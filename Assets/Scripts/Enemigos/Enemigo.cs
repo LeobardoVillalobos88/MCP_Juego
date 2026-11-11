@@ -160,7 +160,7 @@ public class Enemigo : MonoBehaviour
     public void Asustar()
     {
         if (estado != EstadoGlitch.Normal && estado != EstadoGlitch.Asustado) return;
-        if (estado == EstadoGlitch.Normal) movimiento.DarVuelta();
+        movimiento.DarVuelta();
         estado = EstadoGlitch.Asustado;
     }
 
