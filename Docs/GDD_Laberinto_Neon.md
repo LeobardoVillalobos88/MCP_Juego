@@ -12,9 +12,10 @@
 | **Género** | Arcade de laberinto (*maze chase*) 2D, vista desde arriba |
 | **Temática** | Arcade clásico de neón con personajes propios |
 | **Plataforma** | PC, teclado. Se juega desde el Editor o en una build de Windows |
-| **Arte** | Pixel art propio generado con `Herramientas/generar_sprites.py` (16 px por celda) |
-| **Sonido** | Efectos de 8 bits propios generados con `Herramientas/generar_sonidos.py` |
-| **Controles** | WASD/flechas: moverse · Esc: pausa · Mouse: menús |
+| **Arte** | Pixel art propio generado con `Herramientas/generar_sprites.py` (16 px por celda) y brillo de neón (Bloom de URP) |
+| **Fuente** | Fuente pixel propia *PixelNeon* generada con `Herramientas/generar_fuente.py` |
+| **Sonido** | Efectos estilo 8 bits propios generados con `Herramientas/generar_sonidos.py` |
+| **Controles** | WASD/flechas: moverse · Esc: pausa · Enter o mouse: elegir en los menús |
 
 ## 2. Premisa
 
@@ -38,6 +39,7 @@ los Glitches.
 ## 4. Personajes
 
 ### Bit (jugador)
+- Al empezar cada vida espera quieto hasta que se presione una dirección.
 - Se mueve de celda en celda. La dirección que se presiona se guarda y se aplica en cuanto el
   pasillo lo permite, para que las vueltas se sientan suaves.
 - Puede dar media vuelta en cualquier momento.
@@ -70,6 +72,9 @@ que los deja más cerca de su **objetivo**. Lo que cambia es el objetivo:
 - Dispersión y persecución se alternan para todos a la vez: 7 s de dispersión y 20 s de
   persecución. Al cambiar de modo dan media vuelta.
 - Al comer un núcleo, los Glitches que están en el laberinto se asustan y dan media vuelta.
+  Los que siguen en la casa o van saliendo no se asustan.
+- Al comer un Glitch el juego se detiene medio segundo para mostrar los puntos; el susto no
+  corre durante esa pausa.
 
 ## 5. Puntaje
 
@@ -127,31 +132,35 @@ espacio: pasillo sin punto.
 ## 8. Pantallas
 
 - **Menú principal:** título, récord, botones *Jugar* y *Salir*, y los controles.
-- **Juego:** HUD arriba con puntaje, récord y nivel; vidas abajo. Mensaje *¡LISTO!* al empezar
-  cada vida.
-- **Pausa (Esc):** *Continuar* y *Menú*.
+- **Juego:** puntaje y récord a la izquierda del laberinto; nivel y vidas a la derecha.
+  Mensaje *¡LISTO!* debajo de la casa al empezar cada vida.
+- **Pausa (Esc):** *Continuar* y *Menú*. Solo se puede pausar con el juego en marcha
+  (no durante el *¡LISTO!*, una muerte o el cambio de nivel).
 - **Fin de partida:** puntaje final, récord, *Reintentar* y *Menú*.
 
 ## 9. Sonidos
 
 Comer punto (dos tonos alternados), núcleo, comer Glitch, muerte, inicio, nivel completo,
-vida extra, bonus, clic de menú, sirena (fondo normal) y alarma (fondo con Glitches asustados).
+vida extra, bonus, clic del menú principal, sirena (fondo normal) y alarma (fondo con Glitches
+asustados). Los fondos tienen un fundido corto en los extremos para repetirse sin clic.
 
 ## 10. Estructura del proyecto
 
 ```
 Assets/
-  Art/Propios/        sprites generados
-  Art/Tiles/          tiles de las paredes
+  Art/Propios/        sprites generados (incluye Paredes.png, el laberinto completo)
   Audio/SFX/          efectos generados
+  Fonts/              PixelNeon.ttf y su fuente de TextMeshPro
+  Niveles/            Laberinto.txt (el mapa que leen el juego y el generador de sprites)
   Prefabs/Enemigos/   Glitch
-  Prefabs/Pickups/    Punto, Núcleo, Bonus
+  Prefabs/Pickups/    Punto, Núcleo, Bonus, TextoPuntos
   Scenes/             MainMenu, Game
-  Scripts/Core/       GameManager, AudioManager, Laberinto, MovimientoLaberinto, Parpadeo
+  Settings/Neon.asset perfil de posprocesado con el Bloom
+  Scripts/Core/       GameManager, AudioManager, Laberinto, MovimientoLaberinto, Parpadeo, Efimero
   Scripts/Jugador/    Jugador
   Scripts/Enemigos/   Enemigo
   Scripts/Pickups/    Bonus
   Scripts/UI/         HUD, MenuPrincipal, MenuPausa
-Herramientas/         Constructor.cs, generar_sprites.py, generar_sonidos.py
-Docs/                 GDD y planes
+Herramientas/         Constructor.cs, generar_sprites.py, generar_sonidos.py, generar_fuente.py
+Docs/                 GDD, PRD y planes
 ```
